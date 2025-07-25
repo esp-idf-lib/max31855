@@ -11,7 +11,7 @@ Driver for MAX31855 cold-junction compensated thermocouple-to-digital converter.
 ## Installation
 
 ```sh
-idf.py add-dependency "esp-idf-lib/max31855^1.0.0
+idf.py add-dependency esp-idf-lib/max31855^1.0.0
 ```
 
 ## Support
