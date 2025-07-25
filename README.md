@@ -1,5 +1,9 @@
 # esp-idf-lib/max31855
 
+[![Build examples](https://github.com/esp-idf-lib/max31855/actions/workflows//build.yml/badge.svg)](https://github.com/esp-idf-lib/max31855/actions/workflows//build.yml)
+[![Build docs](https://github.com/esp-idf-lib/max31855/actions/workflows//build-docs.yml/badge.svg)](https://github.com/esp-idf-lib/max31855/actions/workflows//build-docs.yml)
+[![Validation](https://github.com/esp-idf-lib/max31855/actions/workflows//validate-component.yml/badge.svg)](https://github.com/esp-idf-lib/max31855/actions/workflows//validate-component.yml)
+
 Driver for MAX31855 cold-junction compensated thermocouple-to-digital converter.
 
 * [Documentation](https://esp-idf-lib.github.io/max31855/)
@@ -11,7 +15,7 @@ Driver for MAX31855 cold-junction compensated thermocouple-to-digital converter.
 ## Installation
 
 ```sh
-idf.py add-dependency esp-idf-lib/max31855^1.0.0
+idf.py add-dependency esp-idf-lib/max31855
 ```
 
 ## Support
