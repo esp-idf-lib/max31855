@@ -1,5 +1,5 @@
 ---
-version: 1.0.2
+version: 1.0.3
 description: Driver for MAX31855 cold-junction compensated thermocouple-to-digital converter
 license: BSD-3
 targets:
