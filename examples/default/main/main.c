@@ -16,14 +16,15 @@ static void task(void *pvParameter)
 {
     max31855_t dev = { 0 };
     // Configure SPI bus
-    spi_bus_config_t cfg = {
-       .mosi_io_num = -1,
-       .miso_io_num = CONFIG_EXAMPLE_MISO_GPIO,
-       .sclk_io_num = CONFIG_EXAMPLE_SCLK_GPIO,
-       .quadwp_io_num = -1,
-       .quadhd_io_num = -1,
-       .max_transfer_sz = 0,
-       .flags = 0
+    spi_bus_config_t cfg =
+    {
+        .mosi_io_num = -1,
+        .miso_io_num = CONFIG_EXAMPLE_MISO_GPIO,
+        .sclk_io_num = CONFIG_EXAMPLE_SCLK_GPIO,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 0,
+        .flags = 0
     };
     ESP_ERROR_CHECK(spi_bus_initialize(HOST, &cfg, 1));
 
