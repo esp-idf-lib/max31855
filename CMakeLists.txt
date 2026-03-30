@@ -1,7 +1,7 @@
 idf_component_register(
     SRCS max31855.c
     INCLUDE_DIRS .
-    REQUIRES driver log
+    REQUIRES driver log esp_driver_spi esp_driver_gpio
 )
 
 # include common cmake file for components
