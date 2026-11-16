@@ -36,8 +36,8 @@
  * BSD Licensed as described in the file LICENSE
  */
 #include "max31855.h"
+#include <esp_log.h>
 #include <string.h>
-#include <math.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -60,6 +60,8 @@
 
 #define LSB_TC 0.25f
 #define LSB_CJ 0.0625f
+
+static const char *TAG = "max31855";
 
 static inline esp_err_t read_32(max31855_t *dev, uint32_t *val)
 {
@@ -104,34 +106,51 @@ static inline esp_err_t max31855_get_raw_data(max31855_t *dev, int16_t *tc_t, in
 esp_err_t max31855_init_desc(max31855_t *dev, spi_host_device_t host, uint32_t clock_speed_hz, gpio_num_t cs_pin)
 {
     CHECK_ARG(dev);
+    CHECK_ARG(host >= SPI1_HOST && host < SPI_HOST_MAX);
+    CHECK_ARG(clock_speed_hz > 0 && clock_speed_hz <= MAX31855_MAX_CLOCK_SPEED_HZ);
+    CHECK_ARG(GPIO_IS_VALID_OUTPUT_GPIO(cs_pin));
 
-    memset(&dev->spi_cfg, 0, sizeof(dev->spi_cfg));
+    // the caller may have filled the other fields of spi_cfg already
     dev->spi_cfg.spics_io_num = cs_pin;
     dev->spi_cfg.clock_speed_hz = clock_speed_hz;
     dev->spi_cfg.mode = 0;
-    dev->spi_cfg.queue_size = 1;
-    dev->spi_cfg.cs_ena_pretrans = 1;
+    if (!dev->spi_cfg.queue_size)
+        dev->spi_cfg.queue_size = 1;
+    // CS must go low at least 100 ns before the first clock edge
+    if (!dev->spi_cfg.cs_ena_pretrans)
+        dev->spi_cfg.cs_ena_pretrans = 1;
 
     return spi_bus_add_device(host, &dev->spi_cfg, &dev->spi_dev);
 }
 
 esp_err_t max31855_free_desc(max31855_t *dev)
 {
-    CHECK_ARG(dev);
+    CHECK_ARG(dev && dev->spi_dev);
 
-    return spi_bus_remove_device(dev->spi_dev);
+    CHECK(spi_bus_remove_device(dev->spi_dev));
+    dev->spi_dev = NULL;
+
+    return ESP_OK;
 }
 
 esp_err_t max31855_get_temperature(max31855_t *dev, float *tc_t, float *cj_t, bool *scv, bool *scg, bool *oc)
 {
-    CHECK_ARG(tc_t);
+    CHECK_ARG(tc_t && scv && scg && oc);
 
     int16_t raw_tc = 0, raw_cj = 0;
     CHECK(max31855_get_raw_data(dev, &raw_tc, &raw_cj, scv, scg, oc));
 
-    *tc_t = (float)raw_tc * LSB_TC;
+    // the cold junction is always valid, the thermocouple is not
     if (cj_t)
         *cj_t = (float)raw_cj * LSB_CJ;
+
+    if (*scv || *scg || *oc)
+    {
+        ESP_LOGE(TAG, "The thermocouple reports a fault");
+        return ESP_ERR_INVALID_RESPONSE;
+    }
+
+    *tc_t = (float)raw_tc * LSB_TC;
 
     return ESP_OK;
 }
