@@ -28,29 +28,36 @@ static void task(void *pvParameter)
     };
     ESP_ERROR_CHECK(spi_bus_initialize(HOST, &cfg, 1));
 
-    // Init device
-    ESP_ERROR_CHECK(max31855_init_desc(&dev, HOST, MAX31855_MAX_CLOCK_SPEED_HZ, CONFIG_EXAMPLE_CS_GPIO));
+    // Init device. The chip can do 5 MHz, but the wiring on a breadboard does
+    // not like it, so 1 MHz is used here
+    ESP_ERROR_CHECK(max31855_init_desc(&dev, HOST, 1000000, CONFIG_EXAMPLE_CS_GPIO));
+
+    // the first conversion takes 200 ms after the power is applied
+    vTaskDelay(pdMS_TO_TICKS(200));
 
     float tc_t, cj_t;
     bool scv, scg, oc;
     while (1)
     {
         esp_err_t res = max31855_get_temperature(&dev, &tc_t, &cj_t, &scv, &scg, &oc);
-        if (res != ESP_OK)
-            ESP_LOGE(TAG, "Failed to measure: %d (%s)", res, esp_err_to_name(res));
-        else
+        if (res == ESP_ERR_INVALID_RESPONSE)
         {
             if (scv) ESP_LOGW(TAG, "Thermocouple shorted to VCC!");
             if (scg) ESP_LOGW(TAG, "Thermocouple shorted to GND!");
             if (oc) ESP_LOGW(TAG, "No connection to thermocouple!");
-            ESP_LOGI(TAG, "Temperature: %.2f°C, cold junction temperature: %.4f°C", tc_t, cj_t);
+            ESP_LOGE(TAG, "Fault, the thermocouple temperature is unknown, "
+                          "cold junction temperature: %.4f°C", cj_t);
         }
+        else if (res != ESP_OK)
+            ESP_LOGE(TAG, "Failed to measure: %d (%s)", res, esp_err_to_name(res));
+        else
+            ESP_LOGI(TAG, "Temperature: %.2f°C, cold junction temperature: %.4f°C", tc_t, cj_t);
 
         vTaskDelay(pdMS_TO_TICKS(200));
     }
 }
 
-void app_main()
+void app_main(void)
 {
     xTaskCreate(task, TAG, configMINIMAL_STACK_SIZE * 8, NULL, 5, NULL);
 }
