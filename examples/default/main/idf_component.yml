@@ -4,5 +4,3 @@ dependencies:
   esp-idf-lib/max31855:
     version: '*'
     override_path: ../../../
-  esp-idf-lib/esp_idf_lib_helpers:
-    version: '*'

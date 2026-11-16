@@ -6,9 +6,8 @@
 #include <esp_idf_version.h>
 #include <max31855.h>
 
-#include <esp_idf_lib_helpers.h>
-
-#define HOST HELPER_SPI_HOST_DEFAULT
+// SPI2_HOST is the general purpose SPI host on every ESP32 family chip
+#define HOST SPI2_HOST
 
 static const char *TAG = "max31855-example";
 
